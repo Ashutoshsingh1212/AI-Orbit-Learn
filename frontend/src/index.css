@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    @apply bg-black text-white antialiased font-sans selection:bg-[#6E56CF]/30 selection:text-white;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
+    background-color: #000000;
+  }
+}
+
+/* Custom minimal scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #09090b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+/* Cross-browser no-scrollbar utility */
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .touch-target-44 {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Glass and glow helper classes */
+.orbit-glow {
+  box-shadow: 0 0 50px -10px rgba(110, 86, 207, 0.15);
+}
+
+.border-subtle-glow:hover {
+  border-color: rgba(110, 86, 207, 0.4);
+  box-shadow: 0 0 15px -3px rgba(110, 86, 207, 0.2);
+}

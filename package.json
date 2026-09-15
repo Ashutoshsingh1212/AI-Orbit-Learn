@@ -1,0 +1,16 @@
+{
+  "name": "ai-orbit-tools-platform",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:frontend": "npm run --prefix frontend dev",
+    "dev:backend": "npm run --prefix backend dev",
+    "build": "npm run --prefix backend build && npm run --prefix frontend build",
+    "setup": "npm install && npm run --prefix backend prisma:push && npm run --prefix backend prisma:seed",
+    "test": "node --experimental-strip-types tests/run_tests.ts"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

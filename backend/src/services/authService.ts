@@ -76,9 +76,25 @@ export class AuthService {
       throw new AppError('Email and password are required', 400);
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
+    const normalizedEmail = email.toLowerCase().trim();
+
+    let user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
     });
+
+    // Auto-provision demo account if missing
+    if (!user && normalizedEmail === 'demo@aiorbit.club') {
+      const passwordHash = await bcrypt.hash('password123', 10);
+      user = await prisma.user.create({
+        data: {
+          name: 'Demo Reviewer',
+          email: 'demo@aiorbit.club',
+          passwordHash,
+          avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+          role: 'ADMIN',
+        },
+      });
+    }
 
     if (!user) {
       throw new AppError('Invalid email or password', 401);

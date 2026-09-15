@@ -222,14 +222,24 @@ class ApiClient {
         headers,
       });
 
-      const data = await response.json();
+      let data: any;
+      const text = await response.text();
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { error: text || `HTTP error ${response.status}` };
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || `HTTP error ${response.status}`);
+        throw new Error(data.error || `Request failed with status ${response.status}`);
       }
 
       return data as T;
     } catch (err: any) {
+      if (err.name === 'TypeError' && err.message?.includes('fetch')) {
+        console.warn(`[API Offline] Unable to reach ${endpoint}:`, err.message);
+        throw new Error('Unable to connect to AI Orbit server. Please check your backend connection or use Quick Demo Login.');
+      }
       console.error(`API Error on [${options.method || 'GET'} ${endpoint}]:`, err.message);
       throw err;
     }
@@ -262,14 +272,16 @@ class ApiClient {
     try {
       return await this.request<ReviewsApiResponse>(`/tools/${toolId}/reviews?page=${page}&limit=${limit}`);
     } catch {
+      const localReviewsStr = localStorage.getItem('ai_orbit_local_reviews') || '[]';
+      const localReviews = JSON.parse(localReviewsStr).filter((r: any) => r.toolId === toolId);
       return {
         success: true,
-        reviews: [],
+        reviews: localReviews,
         stats: {
-          averageRating: 0,
-          totalReviews: 0,
+          averageRating: localReviews.length > 0 ? localReviews.reduce((acc: number, r: any) => acc + r.rating, 0) / localReviews.length : 0,
+          totalReviews: localReviews.length,
         },
-        pagination: { page, limit, total: 0, totalPages: 1 },
+        pagination: { page, limit, total: localReviews.length, totalPages: 1 },
       };
     }
   }
@@ -278,26 +290,80 @@ class ApiClient {
     toolId: string,
     data: { rating: number; title: string; content: string }
   ): Promise<{ success: boolean; data: any; message: string }> {
-    return this.request<{ success: boolean; data: any; message: string }>(`/tools/${toolId}/reviews`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+    try {
+      return await this.request<{ success: boolean; data: any; message: string }>(`/tools/${toolId}/reviews`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    } catch (err: any) {
+      // Offline / fallback storage
+      const token = localStorage.getItem('ai_orbit_token');
+      if (token) {
+        const storedUser = localStorage.getItem('ai_orbit_demo_user');
+        const user = storedUser ? JSON.parse(storedUser) : { id: 'demo-user', name: 'Demo Reviewer', avatarUrl: '' };
+        const newReview = {
+          id: 'review-' + Date.now(),
+          toolId,
+          rating: data.rating,
+          title: data.title,
+          content: data.content,
+          createdAt: new Date().toISOString(),
+          user: {
+            id: user.id,
+            name: user.name,
+            avatarUrl: user.avatarUrl,
+          },
+        };
+        const localReviewsStr = localStorage.getItem('ai_orbit_local_reviews') || '[]';
+        const localReviews = JSON.parse(localReviewsStr);
+        localReviews.unshift(newReview);
+        localStorage.setItem('ai_orbit_local_reviews', JSON.stringify(localReviews));
+        return {
+          success: true,
+          data: newReview,
+          message: 'Review submitted successfully!',
+        };
+      }
+      throw err;
+    }
   }
 
   async toggleBookmark(toolId: string): Promise<{ success: boolean; bookmarked: boolean; message: string }> {
-    return this.request<{ success: boolean; bookmarked: boolean; message: string }>(
-      `/tools/${toolId}/bookmark`,
-      {
-        method: 'POST',
+    try {
+      return await this.request<{ success: boolean; bookmarked: boolean; message: string }>(
+        `/tools/${toolId}/bookmark`,
+        {
+          method: 'POST',
+        }
+      );
+    } catch (err: any) {
+      // Local fallback for offline / demo mode
+      const savedSlugs: string[] = JSON.parse(localStorage.getItem('ai_orbit_bookmarks') || '[]');
+      const index = savedSlugs.indexOf(toolId);
+      let bookmarked = false;
+      if (index >= 0) {
+        savedSlugs.splice(index, 1);
+        bookmarked = false;
+      } else {
+        savedSlugs.push(toolId);
+        bookmarked = true;
       }
-    );
+      localStorage.setItem('ai_orbit_bookmarks', JSON.stringify(savedSlugs));
+      return {
+        success: true,
+        bookmarked,
+        message: bookmarked ? 'Saved to bookmarks' : 'Removed from bookmarks',
+      };
+    }
   }
 
   async getBookmarks(): Promise<{ success: boolean; data: Tool[] }> {
     try {
       return await this.request<{ success: boolean; data: Tool[] }>('/bookmarks');
     } catch {
-      return { success: true, data: [] };
+      const savedSlugs: string[] = JSON.parse(localStorage.getItem('ai_orbit_bookmarks') || '[]');
+      const localTools = FALLBACK_TOOLS.filter((t) => savedSlugs.includes(t.slug) || savedSlugs.includes(t.id));
+      return { success: true, data: localTools };
     }
   }
 

@@ -113,7 +113,10 @@ export const AuthModal: React.FC = () => {
                 <input
                   type="text"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (error) setError(null);
+                  }}
                   placeholder="e.g. Alex Vance"
                   className="w-full h-11 sm:h-10 pl-9 pr-3 rounded-xl border border-[#232328] bg-[#0b0b0e] text-xs text-white placeholder:text-zinc-600 focus:border-[#6E56CF] focus:outline-none focus:ring-1 focus:ring-[#6E56CF]"
                   required
@@ -131,7 +134,10 @@ export const AuthModal: React.FC = () => {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (error) setError(null);
+                }}
                 placeholder="name@example.com"
                 className="w-full h-11 sm:h-10 pl-9 pr-3 rounded-xl border border-[#232328] bg-[#0b0b0e] text-xs text-white placeholder:text-zinc-600 focus:border-[#6E56CF] focus:outline-none focus:ring-1 focus:ring-[#6E56CF]"
                 required
@@ -148,7 +154,10 @@ export const AuthModal: React.FC = () => {
               <input
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (error) setError(null);
+                }}
                 placeholder="••••••••"
                 className="w-full h-11 sm:h-10 pl-9 pr-3 rounded-xl border border-[#232328] bg-[#0b0b0e] text-xs text-white placeholder:text-zinc-600 focus:border-[#6E56CF] focus:outline-none focus:ring-1 focus:ring-[#6E56CF]"
                 required

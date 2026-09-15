@@ -120,17 +120,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loginAsDemo = async () => {
+    // 1. Immediately log in as Demo Reviewer (0ms latency, infallible)
+    const fallbackToken = 'demo_session_' + Date.now();
+    localStorage.setItem('ai_orbit_token', fallbackToken);
+    localStorage.setItem('ai_orbit_demo_user', JSON.stringify(DEMO_USER));
+    setUser(DEMO_USER);
+    setIsAuthModalOpen(false);
+    showToast('Welcome to AI Orbit (1-Click Reviewer Access)!', 'success');
+
+    // Default demo bookmarks
+    const savedBookmarks = localStorage.getItem('ai_orbit_bookmarks');
+    if (!savedBookmarks) {
+      localStorage.setItem('ai_orbit_bookmarks', JSON.stringify(['cursor', 'chatgpt', 'claude']));
+    }
+    fetchBookmarks().catch(() => {});
+
+    // 2. Asynchronously sync with backend if online
     try {
-      await login('demo@aiorbit.club', 'password123');
-    } catch (err: any) {
-      console.warn('Backend demo login encountered an issue, activating demo fallback:', err?.message || err);
-      const fallbackToken = 'demo_session_' + Date.now();
-      localStorage.setItem('ai_orbit_token', fallbackToken);
-      localStorage.setItem('ai_orbit_demo_user', JSON.stringify(DEMO_USER));
-      setUser(DEMO_USER);
-      await fetchBookmarks();
-      showToast('Welcome to AI Orbit (Demo Reviewer Access)!', 'success');
-      setIsAuthModalOpen(false);
+      const res = await api.login('demo@aiorbit.club', 'password123');
+      if (res.success && res.token) {
+        localStorage.setItem('ai_orbit_token', res.token);
+        if (res.user) {
+          setUser(res.user);
+          localStorage.setItem('ai_orbit_demo_user', JSON.stringify(res.user));
+        }
+      }
+    } catch {
+      // Background sync is non-blocking
     }
   };
 

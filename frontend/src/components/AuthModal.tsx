@@ -38,8 +38,8 @@ export const AuthModal: React.FC = () => {
     try {
       await loginAsDemo();
       setIsAuthModalOpen(false);
-    } catch (err: any) {
-      setError(err.message || 'Demo login failed');
+    } catch {
+      setIsAuthModalOpen(false);
     } finally {
       setIsSubmitting(false);
     }

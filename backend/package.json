@@ -2,10 +2,10 @@
   "name": "ai-tools-backend",
   "version": "1.0.0",
   "description": "Backend API for AI Tools Discovery Module",
-  "main": "src/server.ts",
+  "main": "dist/server.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "tsc",
+    "build": "npx prisma generate && tsc",
     "start": "node dist/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",

@@ -10,7 +10,16 @@ export interface AuthRequest extends Request {
   };
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || 'ai_orbit_super_secret_jwt_key_2026_production';
+const getJwtSecret = (): string => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Server configuration error: JWT_SECRET environment variable is missing');
+    }
+    return 'ai_orbit_dev_jwt_secret_fallback';
+  }
+  return secret;
+};
 
 export const requireAuth = (req: AuthRequest, res: Response, next: NextFunction): void => {
   const authHeader = req.headers.authorization;
@@ -22,7 +31,7 @@ export const requireAuth = (req: AuthRequest, res: Response, next: NextFunction)
   const token = authHeader.split(' ')[1];
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as {
+    const decoded = jwt.verify(token, getJwtSecret()) as {
       id: string;
       email: string;
       role: string;
@@ -40,7 +49,7 @@ export const optionalAuth = (req: AuthRequest, _res: Response, next: NextFunctio
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.split(' ')[1];
     try {
-      const decoded = jwt.verify(token, JWT_SECRET) as {
+      const decoded = jwt.verify(token, getJwtSecret()) as {
         id: string;
         email: string;
         role: string;

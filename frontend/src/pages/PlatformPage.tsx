@@ -23,6 +23,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { buildApiUrl } from '../services/api';
 
 export type PlatformTab = 'api' | 'badging' | 'terms' | 'privacy';
 
@@ -134,7 +135,7 @@ export const PlatformPage: React.FC = () => {
       .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`);
     const queryString = queryParts.length > 0 ? `?${queryParts.join('&')}` : '';
 
-    const targetUrl = `http://localhost:5001${urlPath}${queryString}`;
+    const targetUrl = `${buildApiUrl(urlPath)}${queryString}`;
 
     try {
       const res = await fetch(targetUrl, {

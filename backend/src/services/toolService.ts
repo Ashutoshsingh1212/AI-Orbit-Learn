@@ -64,9 +64,9 @@ export class ToolService {
       const targetCategory = categoryMap[catLower] || category;
       andConditions.push({
         OR: [
-          { category: { equals: targetCategory } },
-          { category: { contains: targetCategory } },
-          { category: { contains: category } },
+          { category: { equals: targetCategory, mode: 'insensitive' } },
+          { category: { contains: targetCategory, mode: 'insensitive' } },
+          { category: { contains: category, mode: 'insensitive' } },
         ],
       });
     }
@@ -95,12 +95,12 @@ export class ToolService {
       const cleanSearch = search.trim();
       andConditions.push({
         OR: [
-          { name: { contains: cleanSearch } },
-          { tagLine: { contains: cleanSearch } },
-          { description: { contains: cleanSearch } },
-          { fullDescription: { contains: cleanSearch } },
-          { category: { contains: cleanSearch } },
-          { tags: { contains: cleanSearch } },
+          { name: { contains: cleanSearch, mode: 'insensitive' } },
+          { tagLine: { contains: cleanSearch, mode: 'insensitive' } },
+          { description: { contains: cleanSearch, mode: 'insensitive' } },
+          { fullDescription: { contains: cleanSearch, mode: 'insensitive' } },
+          { category: { contains: cleanSearch, mode: 'insensitive' } },
+          { tags: { contains: cleanSearch, mode: 'insensitive' } },
         ],
       });
     }

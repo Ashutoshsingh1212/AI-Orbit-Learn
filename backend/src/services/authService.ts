@@ -3,7 +3,16 @@ import jwt from 'jsonwebtoken';
 import prisma from '../config/db';
 import { AppError } from '../middleware/errorHandler';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'ai_orbit_super_secret_jwt_key_2026_production';
+const getJwtSecret = (): string => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new AppError('Server configuration error: JWT_SECRET environment variable is missing', 500);
+    }
+    return 'ai_orbit_dev_jwt_secret_fallback';
+  }
+  return secret;
+};
 
 export class AuthService {
   static generateToken(user: { id: string; email: string; role: string; name: string }) {
@@ -14,7 +23,7 @@ export class AuthService {
         role: user.role,
         name: user.name,
       },
-      JWT_SECRET,
+      getJwtSecret(),
       { expiresIn: '7d' }
     );
   }

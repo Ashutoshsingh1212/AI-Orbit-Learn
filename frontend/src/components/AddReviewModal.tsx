@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../services/api';
 import { RatingStars } from './RatingStars';
 import { X, Send, AlertCircle, Sparkles } from 'lucide-react';
 
@@ -37,7 +38,7 @@ export const AddReviewModal: React.FC<AddReviewModalProps> = ({
 
     try {
       const token = localStorage.getItem('ai_orbit_token');
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+      const apiUrl = API_BASE_URL;
 
       if (token) {
         const response = await fetch(`${apiUrl}/tools/${toolSlug}/reviews`, {

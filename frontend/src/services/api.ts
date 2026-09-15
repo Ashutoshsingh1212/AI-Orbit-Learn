@@ -10,7 +10,17 @@ import type {
 } from '../types';
 import { FALLBACK_TOOLS, FALLBACK_CATEGORIES } from './fallbackData';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+export const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5001/api').replace(/\/+$/, '');
+
+export function buildApiUrl(path: string): string {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  if (normalizedPath.startsWith('/api/') || normalizedPath === '/api') {
+    if (API_BASE_URL.endsWith('/api')) {
+      return `${API_BASE_URL}${normalizedPath.slice(4)}`;
+    }
+  }
+  return `${API_BASE_URL}${normalizedPath}`;
+}
 
 /**
  * Filter and sort fallback tools in-memory when backend is offline

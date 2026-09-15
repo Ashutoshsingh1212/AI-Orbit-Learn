@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:5001/api';
+const BASE_URL = process.env.TEST_API_URL || 'http://localhost:5001/api';
 
 let passed = 0;
 let failed = 0;

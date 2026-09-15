@@ -5,12 +5,9 @@ import express from 'express';
 import cors from 'cors';
 import routes from './routes';
 import { errorHandler } from './middleware/errorHandler';
-import prisma from './config/db';
 
 const app = express();
-const PORT = process.env.PORT || 5001;
 
-// CORS configuration
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
@@ -23,11 +20,14 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, Postman)
-      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        process.env.NODE_ENV !== 'production'
+      ) {
         callback(null, true);
       } else {
-        callback(null, true); // Permissive for assignment evaluation
+        callback(new Error('Not allowed by CORS'));
       }
     },
     credentials: true,
@@ -38,10 +38,8 @@ app.use(
 
 app.use(express.json());
 
-// API Routes
 app.use('/api', routes);
 
-// 404 Route handler
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -49,23 +47,6 @@ app.use((req, res) => {
   });
 });
 
-// Centralized error handler
 app.use(errorHandler);
-
-// Start server
-const server = app.listen(PORT, () => {
-  console.log(`⚡️ [server]: AI Orbit Backend API running at http://localhost:${PORT}`);
-  console.log(`🔌 [server]: Health check at http://localhost:${PORT}/api/health`);
-});
-
-// Graceful shutdown
-process.on('SIGINT', async () => {
-  console.log('\nGracefully shutting down...');
-  server.close(async () => {
-    await prisma.$disconnect();
-    console.log('Server and database disconnected. Exiting.');
-    process.exit(0);
-  });
-});
 
 export default app;

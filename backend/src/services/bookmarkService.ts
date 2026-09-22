@@ -78,19 +78,24 @@ export class BookmarkService {
   }
 
   static async getUserBookmarks(userId: string) {
-    const bookmarks = await prisma.bookmark.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-      include: {
-        tool: true,
-      },
-    });
+    try {
+      const bookmarks = await prisma.bookmark.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          tool: true,
+        },
+      });
 
-    return bookmarks.map((b) => ({
-      ...b.tool,
-      features: JSON.parse(b.tool.features || '[]'),
-      tags: JSON.parse(b.tool.tags || '[]'),
-      isBookmarked: true,
-    }));
+      return bookmarks.map((b) => ({
+        ...b.tool,
+        features: JSON.parse(b.tool.features || '[]'),
+        tags: JSON.parse(b.tool.tags || '[]'),
+        isBookmarked: true,
+      }));
+    } catch (err: any) {
+      console.warn('BookmarkService.getUserBookmarks DB error:', err?.message || err);
+      return [];
+    }
   }
 }

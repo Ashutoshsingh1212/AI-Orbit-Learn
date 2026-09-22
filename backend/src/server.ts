@@ -84,10 +84,11 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 // Local development only - never executed when imported or in Vercel serverless environment
-if (!process.env.VERCEL && process.env.NODE_ENV !== 'production' && require.main === module) {
-  const PORT = process.env.PORT || 5001;
+if (!process.env.VERCEL && require.main === module) {
+  const PORT = Number(process.env.PORT) || 5001;
+
   app.listen(PORT, () => {
-    console.log(`AI-Orbit backend running locally at http://localhost:${PORT}`);
+    console.log(`AI-Orbit backend running on port ${PORT}`);
   });
 }
 
